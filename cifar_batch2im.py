@@ -19,7 +19,8 @@ from tensorflow.models.image.cifar10 import cifar10_input
 from tensorflow.python.platform import gfile
 size=(32,32)
 DATA_URL = 'http://www.cs.toronto.edu/~kriz/cifar-10-binary.tar.gz'
-data_dir='data'
+data_dir='Desktop/data'
+
 if not(os.path.exists(data_dir)):
     os.mkdir(data_dir)
     os.mkdir(data_dir+'/pictures')
@@ -33,11 +34,12 @@ def extract_data(url,data_dir):
     filename = DATA_URL.split('/')[-1]
     filepath = os.path.join(data_dir, filename)
 
-
+    '''
     filepath, _ = urllib.request.urlretrieve(DATA_URL, filepath)
     print "downloaded"
+
     tarfile.open(filepath, 'r:gz').extractall(data_dir)
-    print "extracted"
+    print "extracted"'''
     for subdir, dirs, files in os.walk(data_dir):
         for file in files:
             if os.path.join(subdir, file).endswith(".bin"):
@@ -49,15 +51,22 @@ def extract_data(url,data_dir):
                 im=np.zeros((32,32,3))
                 while i<MAX_BYTES:
                     byte = f.read(1)
-                    value = struct.unpack('B', byte)[0]
+
+                    print len(byte)
+                    try:
+                        value = struct.unpack('B', byte)[0]
+                    except ValueError:
+                        print "Bad introduced byte",byte
+
+
                     if(i%3073==0):
                         name=str(value)
                         byte = f.read(1)
                         i=i+1
                     value = struct.unpack('B', byte)[0]
+
                     im[((i-i/3073)%1024)/32,(i-i/3073)%32,((i-i/3073)%3072)/1024]=value
                     i=i+1
                     if(i%3073==0):
                         save_image(im,data_dir+"/pictures/"+name+'_'+str(i)+".jpg")
-
 extract_data(DATA_URL,data_dir)
