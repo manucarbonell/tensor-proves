@@ -69,4 +69,5 @@ def extract_data(url,data_dir):
                     i=i+1
                     if(i%3073==0):
                         save_image(im,data_dir+"/pictures/"+name+'_'+str(i)+".jpg")
+
 extract_data(DATA_URL,data_dir)
