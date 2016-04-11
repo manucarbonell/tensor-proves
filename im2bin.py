@@ -20,19 +20,21 @@ import json
 from pprint import pprint
 size=(32,32)
 
-METADATA_DIR="Desktop/CompleteInstagramDataSet/InstaMetadata"
-IMAGE_DIR="Desktop/CompleteInstagramDataSet/InstaImages/"
-THUMB_DIR="Desktop/thumbnails/"
-BIN_DIR="Desktop/data/"
+wd='Desktop'
+METADATA_DIR=wd+"/CompleteInstagramDataSet/InstaMetadata"
+IMAGE_DIR=wd+"/CompleteInstagramDataSet/InstaImages/"
+THUMB_DIR=wd+"/thumbnails/"
+BIN_DIR=wd+"/data/"
 BIN_TRAIN="data_batch_1.bin"
 BIN_TEST="test_batch.bin"
 N_FILES= len([name for name in os.listdir(METADATA_DIR) if os.path.isfile(os.path.join(METADATA_DIR, name))])
-OUT_FILE="insta_data.tar"
+OUT_FILE="Desktop/insta_data.tar.gz"
 j=0
 tags=[]
 f = open(BIN_DIR+BIN_TRAIN, "wb")
 f2= open(BIN_DIR+BIN_TEST, "wb")
 
+command='scp -P 2275'+OUT_FILE+'mcarbonell@asterix.gso.ac.upc.edu:/etc/cifar10_data/'+OUT_FILE
 
 
 def make_tarfile(output_filename, source_dir):
@@ -51,15 +53,18 @@ for root, dirs, files in os.walk(METADATA_DIR):
                 if len(tag.split(','))>1:
                     tag=tag.split(',')[0]
                 if (tag not in tags):
-                    tags.append(tag)
+                    if (len(tags)<10):
+                        tags.append(tag)
+                    else:
+                        continue
                 im = Image.open(IMAGE_DIR+name.split('.')[0]+'.jpg')
                 im.thumbnail(size)
 
-                #save thumbnails
+                #save thumbnails 2 out of 10 are used for test, rest are for train
                 if j%10==0 or j%10==5:
-                    im.save('Desktop/thumbnails/test/'+', '.join(data['tags'])+'_'+str(j)+'.jpg')
+                    im.save('Desktop/thumbnails/test/'+str(tags.index(tag))+'_'+str(j)+'.jpg')
                 else:
-                    im.save('Desktop/thumbnails/train/'+', '.join(data['tags'])+'_'+str(j)+'.jpg')
+                    im.save('Desktop/thumbnails/train/'+str(tags.index(tag))+'_'+str(j)+'.jpg')
                 imarr=np.asarray(im,dtype='int32')
                 byarr=bytearray(3073)
                 byarr[0]=tags.index(tag)
@@ -79,3 +84,6 @@ with open(BIN_DIR+'batches.meta.txt','w') as f:
         f.write(tag+'\n')
 
 make_tarfile(OUT_FILE,BIN_DIR)
+
+#SEND FILE TO ASTERIX
+os.system(command)

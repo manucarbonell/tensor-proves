@@ -10,20 +10,12 @@ import re
 import sys
 import tarfile
 
-import tensorflow.python.platform
-from six.moves import urllib
-from six.moves import xrange  # pylint: disable=redefined-builtin
-import tensorflow as tf
-
-from tensorflow.models.image.cifar10 import cifar10_input
-from tensorflow.python.platform import gfile
 size=(32,32)
-DATA_URL = 'http://www.cs.toronto.edu/~kriz/cifar-10-binary.tar.gz'
-data_dir='Desktop/data'
+data_dir='Desktop/cifar-10-batches-bin'
+image_dir='Desktop/extracted_images/'
 
-if not(os.path.exists(data_dir)):
-    os.mkdir(data_dir)
-    os.mkdir(data_dir+'/pictures')
+if not(os.path.exists(image_dir)):
+    os.mkdir(image_dir)
 
 def save_image( npdata, outfilename ) :
     img = Image.fromarray( np.asarray( np.clip(npdata,0,255), dtype="uint8"), "RGB" )
@@ -31,8 +23,7 @@ def save_image( npdata, outfilename ) :
     img.save(outfilename)
 
 def extract_data(url,data_dir):
-    filename = DATA_URL.split('/')[-1]
-    filepath = os.path.join(data_dir, filename)
+
 
     '''
     filepath, _ = urllib.request.urlretrieve(DATA_URL, filepath)
@@ -44,6 +35,10 @@ def extract_data(url,data_dir):
         for file in files:
             if os.path.join(subdir, file).endswith(".bin"):
                 batch=os.path.join(subdir, file)
+
+                '''batchdir=data_dir+"/pictures/"+batch.split('/')[-1].split('.')[0]+"/"
+                if not os.path.exists(batchdir):
+                    os.mkdir(batchdir)'''
                 print "Introduce the maximum number of images to read from batch",batch.split('/')[-1]
                 MAX_BYTES=3073*(int(raw_input()))
                 i=0
@@ -51,13 +46,7 @@ def extract_data(url,data_dir):
                 im=np.zeros((32,32,3))
                 while i<MAX_BYTES:
                     byte = f.read(1)
-
-                    print len(byte)
-                    try:
-                        value = struct.unpack('B', byte)[0]
-                    except ValueError:
-                        print "Bad introduced byte",byte
-
+                    value = struct.unpack('B', byte)[0]
 
                     if(i%3073==0):
                         name=str(value)
@@ -68,6 +57,8 @@ def extract_data(url,data_dir):
                     im[((i-i/3073)%1024)/32,(i-i/3073)%32,((i-i/3073)%3072)/1024]=value
                     i=i+1
                     if(i%3073==0):
-                        save_image(im,data_dir+"/pictures/"+name+'_'+str(i)+".jpg")
+                        if not os.path.exists(image_dir+batch.split('/')[-1].split('.')[0]+'/'):
+                            os.mkdir(image_dir+batch.split('/')[-1].split('.')[0]+'/')
+                        save_image(im,image_dir+batch.split('/')[-1].split('.')[0]+'/'+name+'_'+str(i)+".jpg")
 
-extract_data(DATA_URL,data_dir)
+extract_data("",data_dir)
